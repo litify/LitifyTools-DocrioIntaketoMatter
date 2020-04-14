@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <assignments>
+        <description>Assign the file to an Update Collection.</description>
+        <name>Assign_File_to_Update</name>
+        <label>Assign File to Update</label>
+        <locationX>614</locationX>
+        <locationY>235</locationY>
+        <assignmentItems>
+            <assignToReference>scol_FilesToUpdate</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>svar_ThisFile</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>File_Loop</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Assign the Matter ID to the Related To field on the File Info record. (The constant for the Related API name can be updated to a lookup if we wanted to reuse this flow with other objects)</description>
+        <name>Assign_Matter_ID</name>
+        <label>Assign Matter ID</label>
+        <locationX>426</locationX>
+        <locationY>235</locationY>
+        <assignmentItems>
+            <assignToReference>svar_ThisFile.litify_docs__Related_To__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>var_MatterID</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>svar_ThisFile.litify_docs__Related_To_Api_Name__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>con_MatterAPIName</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Assign_File_to_Update</targetReference>
+        </connector>
+    </assignments>
+    <constants>
+        <description>The API name of the Matter record. This is used to update the File Info to ensure the object matches the ID.</description>
+        <name>con_MatterAPIName</name>
+        <dataType>String</dataType>
+        <value>
+            <stringValue>litify_pm__Matter__c</stringValue>
+        </value>
+    </constants>
+    <decisions>
+        <description>If no files are found, stop. Otherwise, continue to loop through and update files with the Matter ID.</description>
+        <name>Files_Found</name>
+        <label>Files Found</label>
+        <locationX>325</locationX>
+        <locationY>52</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Files_Found_Decision</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>scol_AllFiles</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>File_Loop</targetReference>
+            </connector>
+            <label>Files Found</label>
+        </rules>
+    </decisions>
+    <description>Lookup a File based on the Intake ID and reassign the File to the Matter ID. This is launched from a Process Builder that passes in both the Intake and Matter IDs.</description>
+    <interviewLabel>Docrio - Files from Intake to Matter {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Docrio - Files from Intake to Matter</label>
+    <loops>
+        <description>Loop through all Files to update the Related to ID.</description>
+        <name>File_Loop</name>
+        <label>File Loop</label>
+        <locationX>516</locationX>
+        <locationY>49</locationY>
+        <assignNextValueToReference>svar_ThisFile</assignNextValueToReference>
+        <collectionReference>scol_AllFiles</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Assign_Matter_ID</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Update_all_File_Records</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <description>Lookup all Docrio Files based on the Intake ID.</description>
+        <name>File_Lookup</name>
+        <label>File Lookup</label>
+        <locationX>180</locationX>
+        <locationY>50</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Files_Found</targetReference>
+        </connector>
+        <filters>
+            <field>litify_docs__Related_To__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>var_IntakeID</elementReference>
+            </value>
+        </filters>
+        <object>litify_docs__File_Info__c</object>
+        <outputReference>scol_AllFiles</outputReference>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>litify_docs__Related_To__c</queriedFields>
+        <queriedFields>litify_docs__Related_To_Api_Name__c</queriedFields>
+    </recordLookups>
+    <recordUpdates>
+        <description>Update all records that have been modified with the Matter ID.</description>
+        <name>Update_all_File_Records</name>
+        <label>Update all File Records</label>
+        <locationX>732</locationX>
+        <locationY>49</locationY>
+        <inputReference>scol_FilesToUpdate</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>50</locationX>
+        <locationY>50</locationY>
+        <connector>
+            <targetReference>File_Lookup</targetReference>
+        </connector>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>scol_AllFiles</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_docs__File_Info__c</objectType>
+    </variables>
+    <variables>
+        <description>Holds all files that need to be updated.</description>
+        <name>scol_FilesToUpdate</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_docs__File_Info__c</objectType>
+    </variables>
+    <variables>
+        <name>svar_ThisFile</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>litify_docs__File_Info__c</objectType>
+    </variables>
+    <variables>
+        <description>Intake ID passed in by Trigger / Process Builder</description>
+        <name>var_IntakeID</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+        <value>
+            <stringValue></stringValue>
+        </value>
+    </variables>
+    <variables>
+        <description>What is the Matter ID? Passed in from Trigger / Process Builder</description>
+        <name>var_MatterID</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+        <value>
+            <stringValue></stringValue>
+        </value>
+    </variables>
+</Flow>
