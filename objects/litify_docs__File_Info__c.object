@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fields>
+        <fullName>Index__c</fullName>
+        <description>Otherwise known as a File / Document Number. This field is populated via a Process Builder / Flow.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Otherwise known as a File / Document Number. This field is populated via a Process Builder / Flow.</inlineHelpText>
+        <label>Index</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <trackTrending>false</trackTrending>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+</CustomObject>
